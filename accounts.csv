@@ -1,2 +1,2 @@
-username,password,crn,bankcode
-"your_username","your_password","your_crn","your_bank_index_from_banks.txt"
+username,password,crn,bankcode,transaction_pin
+"your_username","your_password","your_crn","your_bank_index_from_banks.txt","your_transaction_pin"
