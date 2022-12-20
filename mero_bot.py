@@ -23,8 +23,15 @@ class MeroSeleniumDriver:
 
         # Select the bank
         self.driver.find_element(By.XPATH, os.getenv("BANK_SELECTOR")).click()
+        bank_dropdown = self.driver.find_element(By.XPATH, os.getenv('BANK_MAIN_SELECTOR'))
+        select = Select(bank_dropdown)
+        banks = bank_dropdown.text.split("\n")
+        print(banks)
         bank_input = self.driver.find_element(By.XPATH, os.getenv("BANK_SELECTOR_INPUT"))
-        bank_input.send_keys("SANIMA BANK LTD (15800)")
+        with open("banks.txt", mode="w") as file:
+            for index, bank in enumerate(banks):
+                file.write(f"{bank} ---------------<<bank index>>---> [{index}]\n")
+        bank_input.send_keys(banks[int(os.getenv("BANK_INDEX"))])
         self.driver.find_element(By.XPATH, os.getenv("BANK_OPTION_SANIMA")).click()
 
         # Enter the username and password
@@ -32,6 +39,7 @@ class MeroSeleniumDriver:
         username_input.send_keys(self.username)
         password_input = self.driver.find_element(By.ID, "password")
         password_input.send_keys(self.password)
+        # time.sleep(200)
         password_input.send_keys(Keys.RETURN)
         print("USER LOGGED IN")
         time.sleep(1)
