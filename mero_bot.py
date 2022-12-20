@@ -12,12 +12,10 @@ from MeroBot.main_bot_driver import WebDriverSingleton
 class MeroSeleniumDriver:
     def __init__(self):
         self.driver = WebDriverSingleton.get_driver()
-        self.username = os.getenv("UN")
-        self.password = os.getenv("PD")
         self.dotenv_path = Path("path/to/.env")
         load_dotenv(dotenv_path=self.dotenv_path)
 
-    def login(self):
+    def login(self, username, password, bank_index):
         # Navigate to login page
         self.driver.get(os.getenv("MERO_SHARE_LOGIN_URL"))
 
@@ -31,14 +29,14 @@ class MeroSeleniumDriver:
         with open("banks.txt", mode="w") as file:
             for index, bank in enumerate(banks):
                 file.write(f"{bank} ---------------<<bank index>>---> [{index}]\n")
-        bank_input.send_keys(banks[int(os.getenv("BANK_INDEX"))])
+        bank_input.send_keys(banks[int(bank_index)])
         self.driver.find_element(By.XPATH, os.getenv("BANK_OPTION_SANIMA")).click()
 
         # Enter the username and password
         username_input = self.driver.find_element(By.ID, "username")
-        username_input.send_keys(self.username)
+        username_input.send_keys(username)
         password_input = self.driver.find_element(By.ID, "password")
-        password_input.send_keys(self.password)
+        password_input.send_keys(password)
         # time.sleep(200)
         password_input.send_keys(Keys.RETURN)
         print("USER LOGGED IN")
@@ -84,7 +82,7 @@ class MeroSeleniumDriver:
                 print("Please enter a valid share number")
         time.sleep(1)
 
-    def apply(self):
+    def apply(self, crn):
         # Select bank from dropdown
         bank_dropdown = self.driver.find_element(By.ID, "selectBank")
         select = Select(bank_dropdown)
@@ -109,7 +107,7 @@ class MeroSeleniumDriver:
         apply_kitta = self.driver.find_element(By.ID, "appliedKitta")
         apply_kitta.send_keys("10")
         crn_number = self.driver.find_element(By.ID, "crnNumber")
-        crn_number.send_keys(os.getenv("CRN_NUMBER"))
+        crn_number.send_keys(crn)
 
         # Agree to disclaimer and proceed
         self.driver.find_element(By.ID, "disclaimer").click()
@@ -119,4 +117,4 @@ class MeroSeleniumDriver:
         pin_input = self.driver.find_element(By.ID, "transactionPIN")
         pin_input.send_keys(os.getenv("TRANSACTION_PIN"))
 
-        time.sleep(3000)
+        time.sleep(3)
