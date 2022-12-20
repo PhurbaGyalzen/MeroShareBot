@@ -1,100 +1,98 @@
-import time
 import os
+import time
 from pathlib import Path
 from dotenv import load_dotenv
 
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import Select
-
-from webdriver_manager.chrome import ChromeDriverManager
-
+from MeroBot.main_bot_driver import WebDriverSingleton
 
 
-dotenv_path = Path('path/to/.env')
-load_dotenv(dotenv_path=dotenv_path)
+class MeroSeleniumDriver:
+    def __init__(self):
+        self.driver = WebDriverSingleton.get_driver()
+        self.username = os.getenv("UN")
+        self.password = os.getenv("PD")
+        self.dotenv_path = Path("path/to/.env")
+        load_dotenv(dotenv_path=self.dotenv_path)
+
+    def login(self):
+        # Navigate to login page
+        self.driver.get(os.getenv("MERO_SHARE_LOGIN_URL"))
+
+        # Select the bank
+        self.driver.find_element(By.XPATH, os.getenv("BANK_SELECTOR")).click()
+        bank_input = self.driver.find_element(By.XPATH, os.getenv("BANK_SELECTOR_INPUT"))
+        bank_input.send_keys("SANIMA BANK LTD (15800)")
+        self.driver.find_element(By.XPATH, os.getenv("BANK_OPTION_SANIMA")).click()
+
+        # Enter the username and password
+        username_input = self.driver.find_element(By.ID, "username")
+        username_input.send_keys(self.username)
+        password_input = self.driver.find_element(By.ID, "password")
+        password_input.send_keys(self.password)
+        password_input.send_keys(Keys.RETURN)
+        time.sleep(1)
 
 
-USERNAME = os.getenv('UN')
-PASSWORD = os.getenv('PD')
+    def checkShares(self):
+        # Navigate to My ASBA Process
+        self.driver.find_element(By.XPATH, os.getenv("HAMBURGER_MENU")).click()
+        self.driver.find_element(By.XPATH, os.getenv("ASBA_TAB_LINK")).click()
+        time.sleep(1)
 
-options = Options()
-# options.add_argument('--headless')
-# options.add_argument('--no-sandbox')
-options.add_argument('--disable-dev-shm-usage')
+        # Apply For ISSUE
+        self.driver.find_element(By.XPATH, os.getenv("APPLY_FOR_ISSUE")).click()
+        time.sleep(1)
 
-# open the webdriver
-driver = webdriver.Chrome(service=Service(
-    ChromeDriverManager().install()), options=options)
+        # Find available shares
+        company_elements = self.driver.find_elements(By.CLASS_NAME, "company-list")
+        values = [
+            company.find_element(By.CLASS_NAME, "company-name").text.split("\n")
+            for company in company_elements
+        ]
+        values = [
+            value for value in values if value[3] == "IPO" and value[4] == "Debentures"
+        ]
 
-driver.get(os.getenv('MERO_SHARE_LOGIN_URL'))
-print("Opened meroshare...")
+        print("Available Shares:")
+        print("*" * 50)
+        for index, value in enumerate(values, 1):
+            print(f"{value[0]} [{index}]")
+        print("*" * 50)
 
-# Fill the login form
-bank = driver.find_element(
-    by=By.XPATH, value=os.getenv('BANK_SELECTOR')).click()
-bank_search = driver.find_element(
-    by=By.XPATH, value=os.getenv('BANK_SELECTOR_INPUT'))
-bank_search.send_keys("SANIMA BANK LTD (15800)")
-driver.find_element(
-    by=By.XPATH, value=os.getenv('BANK_OPTION_SANIMA')).click()
-print("Bank selected...")
+        # Select share
+        share_index = None
+        while share_index is None:
+            try:
+                share_number = int(input("Select the Share Number:")) - 1
+                company_elements[share_number].find_element(
+                    By.TAG_NAME, "button"
+                ).click()
+                share_index = share_number
+            except (IndexError, ValueError):
+                print("Please enter a valid share number")
+        time.sleep(1)
 
-username = driver.find_element(by=By.ID, value="username")
-username.send_keys(USERNAME)
-print("Username entered...")
+    def apply(self):
+        # Select bank from dropdown
+        bank_dropdown = self.driver.find_element(By.ID, "selectBank")
+        select = Select(bank_dropdown)
+        select.select_by_value(os.getenv("BANK_VALUE"))
 
-password = driver.find_element(by=By.ID, value="password")
-password.send_keys(PASSWORD)
-password.send_keys(Keys.RETURN) 
-print("password entered...")
+        # Enter applyKitta and CRN number
+        apply_kitta = self.driver.find_element(By.ID, "appliedKitta")
+        apply_kitta.send_keys("10")
+        crn_number = self.driver.find_element(By.ID, "crnNumber")
+        crn_number.send_keys(os.getenv("CRN_NUMBER"))
 
-time.sleep(1)
-print("redirectetd to dashboard")
+        # Agree to disclaimer and proceed
+        self.driver.find_element(By.ID, "disclaimer").click()
+        self.driver.find_element(By.XPATH, os.getenv("PROCEED_BUTTON")).click()
 
+        # Enter transaction PIN
+        pin_input = self.driver.find_element(By.ID, "transactionPIN")
+        pin_input.send_keys(os.getenv("TRANSACTION_PIN"))
 
-# Navigating to My ASBA Processs
-driver.find_element(by=By.XPATH, value=os.getenv('HAMBURGER_MENU')).click()
-print('clicked the hamburger icon...')
-driver.find_element(by=By.XPATH, value=os.getenv('ASBA_TAB_LINK')).click()
-print("clicked the Asba menu...")
-time.sleep(1)
-
-# Apply For ISSUE
-driver.find_element(by=By.XPATH, value=os.getenv('APPLY_FOR_ISSUE')).click()
-print("clicked to the Apply for Issue...")
-time.sleep(1)
-companies = driver.find_elements(by=By.CLASS_NAME, value='company-list')
-values =[company for company in [company.find_element(by=By.CLASS_NAME, value='company-name').text.split('\n') for company in companies] if (company[3]=='IPO' and company[4]=='Debentures')]
-
-print("Available Shares:")
-print("*"*50)
-for index, value in enumerate(values, 1):
-    print(f"{value[0]} [{index}]")
-print("*"*50)
-share_index = int(input("Select the Share Number:")) -1
-try:
-    companies[share_index].find_element(by=By.TAG_NAME, value='button').click()
-except IndexError:
-    print("Please enter valid bank number")
-    share_index = int(input("Select the Share Number:"))
-
-
-time.sleep(1)
-select = Select(driver.find_element(by=By.ID, value='selectBank'))
-select.select_by_value(str(os.getenv('BANK_VALUE')))
-
-applyKitta = driver.find_element(by=By.ID, value="appliedKitta")
-applyKitta.send_keys("10")
-crnNumber = driver.find_element(by=By.ID, value='crnNumber')
-crnNumber.send_keys(os.getenv('CRN_NUMBER'))
-
-driver.find_element(by=By.ID, value="disclaimer").click()
-time.sleep(1)
-driver.find_element(by=By.XPATH , value=os.getenv('PROCEED_BUTTON')).click()
-
-time.sleep(3000)
-driver.close()
+        time.sleep(3000)
