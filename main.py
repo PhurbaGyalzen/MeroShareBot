@@ -10,4 +10,4 @@ if __name__ == "__main__":
             obj = MeroSeleniumDriver()
             obj.login(account[0], account[1], account[3])
             obj.checkShares()
-            obj.apply(account[2])
+            obj.apply(account[2], account[4])

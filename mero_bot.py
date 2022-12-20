@@ -24,7 +24,6 @@ class MeroSeleniumDriver:
         bank_dropdown = self.driver.find_element(By.XPATH, os.getenv('BANK_MAIN_SELECTOR'))
         select = Select(bank_dropdown)
         banks = bank_dropdown.text.split("\n")
-        print(banks)
         bank_input = self.driver.find_element(By.XPATH, os.getenv("BANK_SELECTOR_INPUT"))
         with open("banks.txt", mode="w") as file:
             for index, bank in enumerate(banks):
@@ -82,7 +81,7 @@ class MeroSeleniumDriver:
                 print("Please enter a valid share number")
         time.sleep(1)
 
-    def apply(self, crn):
+    def apply(self, crn, transaction_pin):
         # Select bank from dropdown
         bank_dropdown = self.driver.find_element(By.ID, "selectBank")
         select = Select(bank_dropdown)
@@ -115,6 +114,9 @@ class MeroSeleniumDriver:
 
         # Enter transaction PIN
         pin_input = self.driver.find_element(By.ID, "transactionPIN")
-        pin_input.send_keys(os.getenv("TRANSACTION_PIN"))
+        pin_input.send_keys(transaction_pin)
+
+        time.sleep(1)
+        self.driver.find_element(By.XPATH, os.getenv('APPLY_BUTTON')).click()
 
         time.sleep(3)
