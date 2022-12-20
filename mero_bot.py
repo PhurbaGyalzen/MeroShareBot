@@ -33,6 +33,7 @@ class MeroSeleniumDriver:
         password_input = self.driver.find_element(By.ID, "password")
         password_input.send_keys(self.password)
         password_input.send_keys(Keys.RETURN)
+        print("USER LOGGED IN")
         time.sleep(1)
 
 
@@ -79,7 +80,22 @@ class MeroSeleniumDriver:
         # Select bank from dropdown
         bank_dropdown = self.driver.find_element(By.ID, "selectBank")
         select = Select(bank_dropdown)
-        select.select_by_value(os.getenv("BANK_VALUE"))
+        banks = bank_dropdown.text.split("\n")
+        banks = [bank.strip() for bank in banks if bank.strip() != ""][1:]
+        
+        if len(banks) == 1:
+            select.select_by_visible_text(banks[0])
+        else:
+            print("Avaliable Banks: \n")
+            for index, bank in enumerate(banks, 1):
+                print(f"{bank}-[{index}]")
+            while True:
+                bank_value = int(input("Enter the bank index from the given options bank options:"))
+                if bank_value > len(banks) or bank_value == 0:
+                    print("please enter the right bank number availabel.")
+                    continue
+                select.select_by_visible_text(banks[bank_value - 1])
+                break
 
         # Enter applyKitta and CRN number
         apply_kitta = self.driver.find_element(By.ID, "appliedKitta")
