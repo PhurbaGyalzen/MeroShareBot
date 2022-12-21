@@ -6,6 +6,8 @@ from dotenv import load_dotenv
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import Select
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from MeroBot.main_bot_driver import WebDriverSingleton
 
 
@@ -20,40 +22,38 @@ class MeroSeleniumDriver:
         self.driver.get(os.getenv("MERO_SHARE_LOGIN_URL"))
 
         # Select the bank
-        self.driver.find_element(By.XPATH, os.getenv("BANK_SELECTOR")).click()
-        bank_dropdown = self.driver.find_element(By.XPATH, os.getenv('BANK_MAIN_SELECTOR'))
+        WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, os.getenv("BANK_SELECTOR")))).click()
+        bank_dropdown =  WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, os.getenv('BANK_MAIN_SELECTOR'))))
         select = Select(bank_dropdown)
         banks = bank_dropdown.text.split("\n")
-        bank_input = self.driver.find_element(By.XPATH, os.getenv("BANK_SELECTOR_INPUT"))
+        bank_input = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, os.getenv("BANK_SELECTOR_INPUT"))))
         with open("banks.txt", mode="w") as file:
             for index, bank in enumerate(banks):
                 file.write(f"{bank} ---------------<<bank index>>---> [{index}]\n")
         bank_input.send_keys(banks[int(bank_index)])
-        self.driver.find_element(By.XPATH, os.getenv("BANK_OPTION_SANIMA")).click()
+        WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, os.getenv("BANK_OPTION_SANIMA")))).click()
 
         # Enter the username and password
         username_input = self.driver.find_element(By.ID, "username")
         username_input.send_keys(username)
         password_input = self.driver.find_element(By.ID, "password")
         password_input.send_keys(password)
-        # time.sleep(200)
         password_input.send_keys(Keys.RETURN)
         print("USER LOGGED IN")
-        time.sleep(1)
+        
 
 
     def checkShares(self):
         # Navigate to My ASBA Process
-        self.driver.find_element(By.XPATH, os.getenv("HAMBURGER_MENU")).click()
-        self.driver.find_element(By.XPATH, os.getenv("ASBA_TAB_LINK")).click()
-        time.sleep(1)
+        WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, os.getenv("HAMBURGER_MENU")))).click()
+        WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, os.getenv("ASBA_TAB_LINK")))).click()
 
         # Apply For ISSUE
-        self.driver.find_element(By.XPATH, os.getenv("APPLY_FOR_ISSUE")).click()
-        time.sleep(1)
+        WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, os.getenv("APPLY_FOR_ISSUE")))).click()
 
         # Find available shares
-        company_elements = self.driver.find_elements(By.CLASS_NAME, "company-list")
+       
+        company_elements =  WebDriverWait(self.driver, 10).until(EC.visibility_of_all_elements_located((By.CLASS_NAME, "company-list")))
         values = [
             company.find_element(By.CLASS_NAME, "company-name").text.split("\n")
             for company in company_elements
@@ -79,11 +79,10 @@ class MeroSeleniumDriver:
                 share_index = share_number
             except (IndexError, ValueError):
                 print("Please enter a valid share number")
-        time.sleep(1)
 
     def apply(self, crn, transaction_pin):
         # Select bank from dropdown
-        bank_dropdown = self.driver.find_element(By.ID, "selectBank")
+        bank_dropdown = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.ID, "selectBank")))
         select = Select(bank_dropdown)
         banks = bank_dropdown.text.split("\n")
         banks = [bank.strip() for bank in banks if bank.strip() != ""][1:]
@@ -103,20 +102,22 @@ class MeroSeleniumDriver:
                 break
 
         # Enter applyKitta and CRN number
-        apply_kitta = self.driver.find_element(By.ID, "appliedKitta")
+        apply_kitta = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.ID, "appliedKitta")))
         apply_kitta.send_keys("10")
-        crn_number = self.driver.find_element(By.ID, "crnNumber")
+
+        crn_number = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.ID, "crnNumber")))
         crn_number.send_keys(crn)
 
         # Agree to disclaimer and proceed
-        self.driver.find_element(By.ID, "disclaimer").click()
-        self.driver.find_element(By.XPATH, os.getenv("PROCEED_BUTTON")).click()
+        WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.ID, "disclaimer"))).click()
+        WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, os.getenv("PROCEED_BUTTON")))).click()
 
         # Enter transaction PIN
-        pin_input = self.driver.find_element(By.ID, "transactionPIN")
+        
+        pin_input = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.ID, "transactionPIN")))
         pin_input.send_keys(transaction_pin)
 
-        time.sleep(1)
-        self.driver.find_element(By.XPATH, os.getenv('APPLY_BUTTON')).click()
 
-        time.sleep(3)
+        WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, os.getenv('APPLY_BUTTON')))).click()
+
+        WebDriverWait(self.driver, 3).until(lambda _: time.sleep(3))
