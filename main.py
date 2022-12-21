@@ -8,6 +8,6 @@ if __name__ == "__main__":
         headings = next(csvreader)
         for account in csvreader: 
             obj = MeroSeleniumDriver()
-            obj.login(account[0], account[1], account[3])
+            obj.login(username=account[0], password=account[1], bank_index=account[3])
             obj.checkShares()
-            obj.apply(account[2], account[4])
+            obj.apply(crn=account[2], transaction_pin=account[4])
