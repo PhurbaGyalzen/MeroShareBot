@@ -1,8 +1,13 @@
 from mero_bot import MeroSeleniumDriver
+
 import csv
 if __name__ == "__main__":
     import csv
+    from pyfiglet import Figlet
+    from termcolor import colored
 
+    custom_fig = Figlet(font='standard')
+    print(colored(custom_fig.renderText("Mero Share Bot"), 'green'))
     with open("./accounts.csv", 'r') as file:
         csvreader = csv.reader(file)
         headings = next(csvreader)

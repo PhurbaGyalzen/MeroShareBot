@@ -2,6 +2,7 @@ import os
 import time
 from pathlib import Path
 from dotenv import load_dotenv
+from termcolor import colored
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -78,14 +79,14 @@ class MeroSeleniumDriver:
         print("Available Shares:")
         print("*" * 50)
         for index, value in enumerate(values, 1):
-            print(f"{value[0]} [{index}]")
+            print(colored(f"{value[0]} [{colored(str(index), 'blue')}]", 'green'))
         print("*" * 50)
 
         # Select share
         share_index = None
         while share_index is None:
             try:
-                share_number = int(input("Select the Share Number:")) - 1
+                share_number = int(input(colored("Select the Share Number:", 'blue'))) - 1
                 company_elements[share_number].find_element(
                     By.TAG_NAME, "button"
                 ).click()
